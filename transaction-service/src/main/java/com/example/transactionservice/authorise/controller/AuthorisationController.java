@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -68,7 +69,12 @@ public class AuthorisationController {
             AuthenticationResponse response = future.get(20, TimeUnit.SECONDS);
             logger.info("Received authentication response from authentication service for request with Request ID : {}", requestId);
             String authStatus = response.getPayload().getAuthenticationResult().equals(Boolean.TRUE) ? ACCEPTED : REJECTED;
-            return ResponseEntity.ok().body(AuthorizationResponse.builder().authorisationStatus(authStatus).build());
+            if (authStatus.equals(ACCEPTED)) {
+                return ResponseEntity.ok().body(AuthorizationResponse.builder().authorisationStatus(authStatus).build());
+            }
+            else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(AuthorizationResponse.builder().authorisationStatus(REJECTED).build());
+            }
         } catch (TimeoutException e) {
             return ResponseEntity.status(504).body(AuthorizationResponse.builder().authorisationStatus(REJECTED).build());
         } catch (Exception e) {

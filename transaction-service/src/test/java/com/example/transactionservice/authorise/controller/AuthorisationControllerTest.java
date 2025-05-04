@@ -102,7 +102,7 @@ class AuthorisationControllerTest {
         mockMvc.perform(post("/transaction/authorize")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
+                .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.authorisationStatus", is("Rejected")));
     }
 

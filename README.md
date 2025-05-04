@@ -94,10 +94,22 @@ gh repo clone chinmay12/csms
    cd <Location of provisioning folder in your machine>
 ```
 ```
-3. docker compose build
+3. 
+export ENCRYPTION_PASSWORD=chargepoint12345
+docker compose build
 ```
 ```
 4. docker compose up
+```
+
+```
+5. Application successfully started logs
+
+transaction-service: partitions assigned: [auth-responses-0, auth-responses-1, auth-responses-2, auth-responses-3, auth-responses-4, auth-responses-5, auth-responses-6, auth-responses-7, auth-responses-8, auth-responses-9]
+
+authentication-service: partitions assigned: [auth-requests-0, auth-requests-1, auth-requests-2, auth-requests-3, auth-requests-4, auth-requests-5, auth-requests-6, auth-requests-7, auth-requests-8, auth-requests-9]
+
+
 ```
 
 ## API details
@@ -165,7 +177,7 @@ Curl requests
 
 ```
 
-curl --request POST \
+curl -i --request POST \
   --url http://localhost:8081/transaction/authorize \
    --header 'Content-Type: application/json' \
   --header 'User-Agent: insomnia/11.0.2' \
@@ -179,7 +191,7 @@ curl --request POST \
 }'
 
 
-curl --request POST \
+curl -i --request POST \
   --url http://localhost:8081/transaction/authorize \
   --header 'Content-Type: application/json' \
   --header 'User-Agent: insomnia/11.0.2' \
@@ -197,7 +209,7 @@ curl --request POST \
 Test scenario 2: Valid driver id and invalid token
 
 ```
-curl --request POST \
+curl -i --request POST \
   --url http://localhost:8081/transaction/authorize \
   --header 'Content-Type: application/json' \
   --header 'User-Agent: insomnia/11.0.2' \
@@ -215,7 +227,7 @@ Test scenario 3: Unknown driver id
 
 ```
 
-curl --request POST \
+curl -i --request POST \
   --url http://localhost:8081/transaction/authorize \
   --header 'Content-Type: application/json' \
   --header 'User-Agent: insomnia/11.0.2' \
@@ -234,7 +246,7 @@ Test scenario 4: Invalid driver id
 
 ```
 
-curl --request POST \
+curl -i --request POST \
   --url http://localhost:8081/transaction/authorize \
   --header 'Content-Type: application/json' \
   --header 'User-Agent: insomnia/11.0.2' \
