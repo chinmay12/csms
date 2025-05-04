@@ -3,6 +3,7 @@ package com.example.transactionservice.authorise.controller;
 import com.example.common.model.AuthenticationResponse;
 import com.example.common.model.AuthenticationState;
 import com.example.transactionservice.authorise.model.dto.AuthorizationRequest;
+import com.example.transactionservice.authorise.model.dto.DriverIdentifier;
 import com.example.transactionservice.kafka.service.AuthEventProducer;
 import com.example.transactionservice.kafka.service.AuthResponseHandler;
 import com.example.transactionservice.service.DriverFinderService;
@@ -47,9 +48,12 @@ class AuthorisationControllerTest {
 
     @Test
     void shouldReturnAcceptedWhenAuthenticationIsTrue() throws Exception {
+        DriverIdentifier driverIdentifier = new DriverIdentifier();
+        driverIdentifier.setId("driver123456789012345");
+        driverIdentifier.setToken("token1234");
         AuthorizationRequest request = AuthorizationRequest.builder()
                 .stationUUID("station123")
-                .driverIdentifier("driver123456789012345")
+                .driverIdentifier(driverIdentifier)
                 .build();
 
         AuthenticationState state = AuthenticationState.builder()
@@ -67,7 +71,6 @@ class AuthorisationControllerTest {
 
         mockMvc.perform(post("/transaction/authorize")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer token123")
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.authorisationStatus", is("Accepted")));
@@ -75,9 +78,12 @@ class AuthorisationControllerTest {
 
     @Test
     void shouldReturnRejectedWhenAuthenticationIsFalse() throws Exception {
+        DriverIdentifier driverIdentifier = new DriverIdentifier();
+        driverIdentifier.setId("driver123456789012345");
+        driverIdentifier.setToken("token1234");
         AuthorizationRequest request = AuthorizationRequest.builder()
                 .stationUUID("station123")
-                .driverIdentifier("driver123456789012345")
+                .driverIdentifier(driverIdentifier)
                 .build();
 
         AuthenticationState state = AuthenticationState.builder()
@@ -95,7 +101,6 @@ class AuthorisationControllerTest {
 
         mockMvc.perform(post("/transaction/authorize")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer token123")
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.authorisationStatus", is("Rejected")));
@@ -103,14 +108,16 @@ class AuthorisationControllerTest {
 
     @Test
     void shouldReturnInvalidWhenDriverIdentifierIsInvalid() throws Exception {
+        DriverIdentifier driverIdentifier = new DriverIdentifier();
+        driverIdentifier.setId("short");
+        driverIdentifier.setToken("token1234");
         AuthorizationRequest request = AuthorizationRequest.builder()
                 .stationUUID("station123")
-                .driverIdentifier("short")
+                .driverIdentifier(driverIdentifier)
                 .build();
 
         mockMvc.perform(post("/transaction/authorize")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer token123")
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.authorisationStatus", is("Invalid")));
@@ -118,9 +125,12 @@ class AuthorisationControllerTest {
 
     @Test
     void shouldReturnUnknownWhenDriverNotFound() throws Exception {
+        DriverIdentifier driverIdentifier = new DriverIdentifier();
+        driverIdentifier.setId("driver12345678901234554");
+        driverIdentifier.setToken("token1234");
         AuthorizationRequest request = AuthorizationRequest.builder()
                 .stationUUID("station123")
-                .driverIdentifier("driver123456789012345")
+                .driverIdentifier(driverIdentifier)
                 .build();
 
         when(driverFinderService.findDriver(any())).thenReturn(false);

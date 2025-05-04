@@ -5,6 +5,7 @@ import com.example.common.model.AuthenticationResponse;
 import com.example.common.model.AuthenticationToken;
 import com.example.transactionservice.authorise.model.dto.AuthorizationResponse;
 import com.example.transactionservice.authorise.model.dto.AuthorizationRequest;
+import com.example.transactionservice.authorise.model.dto.DriverIdentifier;
 import com.example.transactionservice.kafka.service.AuthEventProducer;
 import com.example.transactionservice.kafka.service.AuthResponseHandler;
 import com.example.transactionservice.service.DriverFinderService;
@@ -43,9 +44,10 @@ public class AuthorisationController {
     }
 
     @PostMapping("/authorize")
-    public ResponseEntity<AuthorizationResponse> authorize(@RequestBody AuthorizationRequest request, @RequestHeader("Authorization") String authorizationHeader) {
+    public ResponseEntity<AuthorizationResponse> authorize(@RequestBody AuthorizationRequest request) {
         String stationUUID = request.getStationUUID();
-        String driverIdentifier = request.getDriverIdentifier();
+        DriverIdentifier driverDetails = request.getDriverIdentifier();
+        String driverIdentifier = driverDetails.getId();
 
         if (stationUUID == null || driverIdentifier == null ||driverIdentifier.length() < 20 || driverIdentifier.length() > 80) {
             return ResponseEntity.status(400).body(AuthorizationResponse.builder().authorisationStatus("Invalid").build());
@@ -57,13 +59,13 @@ public class AuthorisationController {
         try {
             String requestId = MDC.get("requestId");
             logger.info("Processing authorization request with Request ID: {}", requestId);
-            String token = extractToken(authorizationHeader);
+            String token = driverDetails.getToken();
             AuthenticationToken authenticationToken = AuthenticationToken.builder().driverId(driverIdentifier).token(token).build();
             AuthenticationRequest authenticationRequest = AuthenticationRequest.builder().requestId(requestId).payload(authenticationToken).build();
             producer.sendAuthEvent(authenticationRequest);
             logger.info("Added authentication request for request with Request ID : {} to kafka", requestId);
             CompletableFuture<AuthenticationResponse> future = responseHandler.createFuture(requestId);
-            AuthenticationResponse response = future.get(60, TimeUnit.SECONDS);
+            AuthenticationResponse response = future.get(20, TimeUnit.SECONDS);
             logger.info("Received authentication response from authentication service for request with Request ID : {}", requestId);
             String authStatus = response.getPayload().getAuthenticationResult().equals(Boolean.TRUE) ? ACCEPTED : REJECTED;
             return ResponseEntity.ok().body(AuthorizationResponse.builder().authorisationStatus(authStatus).build());
@@ -73,13 +75,6 @@ public class AuthorisationController {
             logger.error("Error occurred while processing authorization request", e);
             return ResponseEntity.status(500).body(AuthorizationResponse.builder().authorisationStatus(REJECTED).build());
         }
-    }
-
-    private String extractToken(String header) {
-        if (header != null && header.startsWith("Bearer ")) {
-            return header.substring(7);
-        }
-        return null;
     }
 
 }

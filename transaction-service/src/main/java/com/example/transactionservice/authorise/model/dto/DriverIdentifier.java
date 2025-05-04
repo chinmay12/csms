@@ -9,10 +9,10 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AuthorizationRequest {
-    private String stationUUID;
-    private DriverIdentifier driverIdentifier;
+@Builder
+public class DriverIdentifier {
+    private String id;
+    private String token;
 }
