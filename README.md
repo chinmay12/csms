@@ -139,8 +139,17 @@ HTTP status code 200
 
 Body:
 {
-    "authorizationStatus": "Accepted | Rejected"
+    "authorizationStatus": "Accepted"
 }
+
+
+HTTP status code 401
+
+Body:
+{
+    "authorizationStatus": "Rejected"
+}
+
 
 
 HTTP status code 400
